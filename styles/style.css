@@ -1,0 +1,6 @@
+/* for btn active */
+
+.active {
+    background-color: red;
+    color: white;
+}

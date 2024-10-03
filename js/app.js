@@ -10,8 +10,18 @@ function getTimeString(time) {
     const minute = parseInt(remainingSecond / 60);
     remainingSecond = remainingSecond % 60;
     return `${year} y ${day} d ${hour} h ${minute} min ${remainingSecond} s ago`
+};
 
+
+// remove active class in button
+const removeActiveClass = () => {
+    const buttons = document.getElementsByClassName('category-btn');
+    // class name html collection dive ja 100% array na tai for of loop
+    for(let btn of buttons) {
+        btn.classList.remove('active');
+    }
 }
+
 
 
 // Fetch, Load and Show Categories on html
@@ -35,6 +45,24 @@ const loadVideos = () => {
     fetch("https://openapi.programming-hero.com/api/phero-tube/videos")
         .then((res) => res.json())
         .then((data) => displayVideos(data.videos))
+        .catch((error) => console.log(error));
+};
+
+
+// when click button videos fond by category
+
+const loadCategoryVideos = (id) => {
+    fetch(`https://openapi.programming-hero.com/api/phero-tube/category/${id}`)
+        .then((res) => res.json())
+        .then((data) => {
+            // remove active class by call function
+            removeActiveClass();
+
+            // active button and add active class 
+            const activeBtn = document.getElementById(`btn-${id}`);
+            activeBtn.classList.add('active');
+            displayVideos(data.category);
+        })
         .catch((error) => console.log(error));
 };
 
@@ -65,9 +93,29 @@ const loadVideos = () => {
 
 const displayVideos = (videos) => {
     const videoContainer = document.getElementById('videos');
+    videoContainer.innerHTML = ""; // when call this function by loadCategoryVideos() then this container become empty and add video by category
     // console.log(videos);
+
+    //when has no video on category
+    if (videos.length == 0) {
+        videoContainer.classList.remove('grid');
+        videoContainer.innerHTML = `
+        <div class="min-h-[300px] flex flex-col gap-5 justify-center items-center">
+            <img src="assets/Icon.png" alt="">
+            <h2 class="text-center text-xl font-bold">
+            No Content Here in this Category
+            </h2>
+        </div>
+        `;
+        return;
+    }
+    else {
+        videoContainer.classList.add('grid');
+    }
+
+    //find 12 videos
     videos.forEach((video) => {
-        console.log(video);
+        // console.log(video);
         const card = document.createElement('div');
         card.classList = "card card-compact";
         card.innerHTML = `
@@ -90,8 +138,7 @@ const displayVideos = (videos) => {
         <div class="flex items-center gap-2">
             <p class="text-gray-500">${video.authors[0].profile_name}</p>
 
-            ${
-                video.authors[0].verified === true ? `<img class="w-5" src="https://img.icons8.com/?size=48&id=98A4yZTt9abw&format=png">` : ""
+            ${video.authors[0].verified === true ? `<img class="w-5" src="https://img.icons8.com/?size=48&id=98A4yZTt9abw&format=png">` : ""
             }
         </div>
         <p></p>
@@ -111,12 +158,15 @@ const displayCategories = (categories) => {
     categories.forEach((item) => {
         // console.log(item);
         // create a button
-        const button = document.createElement('button');
-        button.classList = "btn";
-        button.innerText = item.category;
+        const buttonContainer = document.createElement('div');
+        buttonContainer.innerHTML = `
+        <button id="btn-${item.category_id}" onclick="loadCategoryVideos(${item.category_id})" class="btn category-btn">
+        ${item.category}
+        </button>
+        `;
 
         // add button to category container
-        categoryContainer.append(button);
+        categoryContainer.append(buttonContainer);
     });
 };
 
